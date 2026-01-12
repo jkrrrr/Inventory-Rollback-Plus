@@ -86,6 +86,8 @@ public class ConfigData {
     private static boolean restoreToPlayerButton;
     private static int backupLinesVisible;
 
+    private static boolean saveEmptyInventories;
+
     private static int maxSavesJoin;
     private static int maxSavesQuit;
     private static int maxSavesDeath;
@@ -135,6 +137,7 @@ public class ConfigData {
         setAllowOtherPluginEditDeathInventory((boolean) getDefaultValue("allow-other-plugins-edit-death-inventory", false));
         setRestoreToPlayerButton((boolean) getDefaultValue("restore-to-player-button", true));
         setBackupLinesVisible((int) getDefaultValue("backup-lines-visible", 1));
+        setSaveEmptyInventories((boolean) getDefaultValue("save-empty-inventories", true));
 
         setMaxSavesJoin((int) getDefaultValue("max-saves.join", 10));
         setMaxSavesQuit((int) getDefaultValue("max-saves.quit", 10));	
@@ -211,6 +214,10 @@ public class ConfigData {
 
     public static void setAllowOtherPluginEditDeathInventory(boolean value) {
         allowOtherPluginEditDeathInventory = value;
+    }
+
+    public static void setSaveEmptyInventories(boolean value) {
+        saveEmptyInventories = value;
     }
 
     public static void setBackupLinesVisible(int value) {
@@ -339,6 +346,10 @@ public class ConfigData {
 
     public static boolean isAllowOtherPluginEditDeathInventory() {
         return allowOtherPluginEditDeathInventory;
+    }
+
+    public static boolean isSaveEmptyInventories() {
+        return saveEmptyInventories;
     }
 
     public static int getBackupLinesVisible() {
