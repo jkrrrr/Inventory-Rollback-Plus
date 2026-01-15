@@ -1,6 +1,7 @@
 package me.danjono.inventoryrollback.gui.menu;
 
 import com.nuclyon.technicallycoded.inventoryrollback.InventoryRollbackPlus;
+import com.tcoded.lightlibs.bukkitversion.MCVersion;
 import me.danjono.inventoryrollback.config.ConfigData;
 import me.danjono.inventoryrollback.config.MessageData;
 import me.danjono.inventoryrollback.data.LogType;
@@ -19,6 +20,7 @@ import java.util.concurrent.Future;
 
 public class MainInventoryBackupMenu {
 
+	public static final int GIVE_SHULKERS_BUTTON_SLOT = 47;
 	private final InventoryRollbackPlus main;
 
 	private final Player staff;
@@ -66,7 +68,32 @@ public class MainInventoryBackupMenu {
 	    inventory = Bukkit.createInventory(staff, InventoryName.MAIN_BACKUP.getSize(), InventoryName.MAIN_BACKUP.getName());
 	    
 	    //Add back button
-        inventory.setItem(46, buttons.inventoryMenuBackButton(MessageData.getBackButton(), logType, timestamp));
+        inventory.setItem(45, buttons.inventoryMenuBackButton(MessageData.getBackButton(), logType, timestamp));
+
+		// Add get shulker button
+		if (main.getVersion().greaterOrEqThan(MCVersion.v1_11.toBukkitVersion()))
+			inventory.setItem(GIVE_SHULKERS_BUTTON_SLOT, buttons.giveShulkerBox(logType, timestamp));
+
+		// Add restore all player inventory button
+		if (ConfigData.isRestoreToPlayerButton())
+			inventory.setItem(48, buttons.restoreAllInventory(logType, timestamp));
+		else
+			inventory.setItem(48, buttons.restoreAllInventoryDisabled(logType, timestamp));
+
+		//Add teleport back button
+		inventory.setItem(49, buttons.enderPearlButton(logType, location));
+
+		//Add Enderchest icon
+		inventory.setItem(50, buttons.enderChestButton(logType, timestamp, enderChest));
+
+		//Add health icon
+		inventory.setItem(51, buttons.healthButton(logType, health));
+
+		//Add hunger icon
+		inventory.setItem(52, buttons.hungerButton(logType, hunger, saturation));
+
+		//Add Experience Bottle
+		inventory.setItem(53, buttons.experiencePotion(logType, xp));
 	}
 	
 	public Inventory getInventory() {
@@ -164,27 +191,6 @@ public class MainInventoryBackupMenu {
 				ex.printStackTrace();
 			}
 		}
-				
-		// Add restore all player inventory button
-		if (ConfigData.isRestoreToPlayerButton())
-		    inventory.setItem(48, buttons.restoreAllInventory(logType, timestamp));
-		 else
-			inventory.setItem(48, buttons.restoreAllInventoryDisabled(logType, timestamp));
-
-		//Add teleport back button
-		inventory.setItem(49, buttons.enderPearlButton(logType, location));
-		
-		//Add Enderchest icon	
-		inventory.setItem(50, buttons.enderChestButton(logType, timestamp, enderChest));
-		
-		//Add health icon
-		inventory.setItem(51, buttons.healthButton(logType, health));
-		
-		//Add hunger icon
-		inventory.setItem(52, buttons.hungerButton(logType, hunger, saturation));
-		
-		//Add Experience Bottle			
-		inventory.setItem(53, buttons.experiencePotion(logType, xp));
 	}
 		
 }

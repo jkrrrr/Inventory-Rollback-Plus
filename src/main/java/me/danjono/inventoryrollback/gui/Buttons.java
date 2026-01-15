@@ -64,6 +64,10 @@ public class Buttons {
 
     private static final Material restoreAllInventoryDisabled = Material.REDSTONE_BLOCK;
 
+    private static final Material shulkerBox =
+            InventoryRollbackPlus.getInstance().getVersion().greaterOrEqThan(BukkitVersion.v1_11_R1) ?
+                    Material.SHULKER_BOX : Material.BARRIER;
+
 
     public Buttons(UUID uuid) {
         this.uuid = uuid;
@@ -123,6 +127,10 @@ public class Buttons {
 
     public static Material getRestoreAllInventoryDisabledIcon() {
         return restoreAllInventoryDisabled;
+    }
+
+    public static Material getGiveShulkerBoxIcon() {
+        return shulkerBox;
     }
 
     public ItemStack nextButton(String displayName, LogType logType, int page, List<String> lore) {
@@ -683,6 +691,34 @@ public class Buttons {
             patterns.add(new Pattern(DyeColor.GRAY, PatternType.BORDER));
         }
         return patterns;
+    }
+
+    public ItemStack giveShulkerBox(LogType logType, Long timestamp) {
+        ItemStack item = new ItemStack(getGiveShulkerBoxIcon());
+
+        ItemMeta meta = item.getItemMeta();
+        assert meta != null;
+
+        String[] nameParts = MessageData.getShulkerBoxButton().split("\\\\n");
+        String titlePart = nameParts[0];
+        ArrayList<String> loreParts = new ArrayList<>();
+
+        meta.setDisplayName(titlePart);
+        for (int i = 1; i < nameParts.length; i ++) {
+            loreParts.add(nameParts[i]);
+        }
+        meta.setLore(loreParts);
+
+        item.setItemMeta(meta);
+
+        CustomDataItemEditor nbt = CustomDataItemEditor.editItem(item);
+
+        nbt.setString("uuid", uuid.toString());
+        nbt.setString("logType", logType.name());
+        nbt.setLong("timestamp", timestamp);
+        item = nbt.setItemData();
+
+        return item;
     }
 
 }

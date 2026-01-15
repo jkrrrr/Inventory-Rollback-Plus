@@ -3,6 +3,7 @@ package me.danjono.inventoryrollback.listeners;
 import com.nuclyon.technicallycoded.inventoryrollback.InventoryRollbackPlus;
 import com.nuclyon.technicallycoded.inventoryrollback.customdata.CustomDataItemEditor;
 import com.tcoded.lightlibs.bukkitversion.BukkitVersion;
+import com.tcoded.lightlibs.bukkitversion.MCVersion;
 import io.papermc.lib.PaperLib;
 import me.danjono.inventoryrollback.InventoryRollback;
 import me.danjono.inventoryrollback.config.ConfigData;
@@ -15,6 +16,7 @@ import me.danjono.inventoryrollback.gui.InventoryName;
 import me.danjono.inventoryrollback.gui.menu.*;
 import me.danjono.inventoryrollback.inventory.RestoreInventory;
 import org.bukkit.*;
+import org.bukkit.block.ShulkerBox;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -22,8 +24,11 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BlockStateMeta;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -279,6 +284,88 @@ public class ClickGUI implements Listener {
 
                 staff.openInventory(menu.getInventory());
                 Bukkit.getScheduler().runTaskAsynchronously(InventoryRollback.getInstance(), menu::showBackups);
+            }
+
+            //Click on page selector button to go back to rollback menu
+            else if (e.getRawSlot() == MainInventoryBackupMenu.GIVE_SHULKERS_BUTTON_SLOT) {
+                // Perm check
+                if (!staff.hasPermission("inventoryrollbackplus.restore")) {
+                    staff.sendMessage(MessageData.getPluginPrefix() + MessageData.getNoPermission());
+                    return;
+                }
+
+                Bukkit.getScheduler().runTaskAsynchronously(InventoryRollback.getInstance(), () -> {
+                    // Unsupported on older versions
+                    if (main.getVersion().lessThan(MCVersion.v1_11.toBukkitVersion())) {
+                        return;
+                    }
+
+                    // Give shulkers
+
+                    // Init from MySQL or, if YAML, init & load config file
+                    PlayerData data = new PlayerData(offlinePlayer, logType, timestamp);
+
+                    // Get data if using MySQL
+                    if (ConfigData.getSaveType() == ConfigData.SaveType.MYSQL) {
+                        try {
+                            data.getAllBackupData().get();
+                        } catch (ExecutionException | InterruptedException ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+
+                    ItemStack[] mainInventory = data.getMainInventory();
+                    ItemStack[] extraItems = data.getArmour();
+
+                    if (extraItems == null || extraItems.length == 0) {
+                        int extraItemsLen = mainInventory.length - 36;
+                        extraItems = new ItemStack[extraItemsLen];
+                        System.arraycopy(mainInventory, 36, extraItems, 0, extraItemsLen);
+                    }
+
+                    ItemStack[] hotBar = Arrays.copyOfRange(mainInventory, 0, Math.min(mainInventory.length, 9));
+                    ItemStack[] invContents = mainInventory.length >= 9
+                            ? Arrays.copyOfRange(mainInventory, 9, mainInventory.length)
+                            : new ItemStack[36];
+
+                    ItemStack[] firstShulkerContents = new ItemStack[27];
+                    ItemStack[] secondShulkerContents = new ItemStack[27];
+
+                    System.arraycopy(hotBar, 0, firstShulkerContents, 0, hotBar.length);
+                    System.arraycopy(extraItems, 0, firstShulkerContents, 9, Math.min(extraItems.length, 18));
+
+                    System.arraycopy(invContents, 0, secondShulkerContents, 0, Math.min(invContents.length, 27));
+
+                    ItemStack firstShulker = new ItemStack(Material.SHULKER_BOX);
+                    ItemStack secondShulker = new ItemStack(Material.SHULKER_BOX);
+
+                    ItemMeta firstMeta = firstShulker.getItemMeta();
+                    if (firstMeta instanceof BlockStateMeta) {
+                        BlockStateMeta blockMeta = (BlockStateMeta) firstMeta;
+                        if (blockMeta.getBlockState() instanceof ShulkerBox) {
+                            ShulkerBox shulkerBox = (ShulkerBox) blockMeta.getBlockState();
+                            shulkerBox.getInventory().setContents(firstShulkerContents);
+                            blockMeta.setBlockState(shulkerBox);
+                            firstShulker.setItemMeta(blockMeta);
+                        }
+                    }
+
+                    ItemMeta secondMeta = secondShulker.getItemMeta();
+                    if (secondMeta instanceof BlockStateMeta) {
+                        BlockStateMeta blockMeta = (BlockStateMeta) secondMeta;
+                        if (blockMeta.getBlockState() instanceof ShulkerBox) {
+                            ShulkerBox shulkerBox = (ShulkerBox) blockMeta.getBlockState();
+                            shulkerBox.getInventory().setContents(secondShulkerContents);
+                            blockMeta.setBlockState(shulkerBox);
+                            secondShulker.setItemMeta(blockMeta);
+                        }
+                    }
+
+                    Bukkit.getScheduler().runTask(main, t -> {
+                        staff.getInventory().addItem(firstShulker, secondShulker);
+                        staff.closeInventory();
+                    });
+                });
             }
 
             //Clicked icon to overwrite player inventory with backup data

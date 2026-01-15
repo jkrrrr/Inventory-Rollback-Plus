@@ -81,6 +81,7 @@ public class MessageData {
     private static String mainInventoryNotOnline;
     private static String mainInventoryButton;
     private static String mainInventoryDisabledButton;
+    private static String shulkerBoxButton;
 
     // Ender chest GUI messages
     private static String enderChestRestored;
@@ -151,6 +152,7 @@ public class MessageData {
         setMainInventoryNotOnline(convertColorCodes((String) getDefaultValue("attribute-restore.main-inventory.not-online", "You can't restore %NAME%'s inventory while they are offline.")));
         setMainInventoryButton(convertColorCodes((String) getDefaultValue("attribute-restore.main-inventory.button-name", "&cOverwrite Main Inventory from Backup")));
         setMainInventoryDisabledButton(convertColorCodes((String) getDefaultValue("attribute-restore.main-inventory.button-disabled", "&cYou must enable this option in the configuration")));
+        setShulkerBoxButton(convertColorCodes((String) getDefaultValue("attribute-restore.main-inventory.shulker-box", "&dExport to Shulker Boxes")));
 
         // Ender chest gui
         setEnderChestRestored(convertColorCodes((String) getDefaultValue("attribute-restore.ender-chest.restored", "%NAME%'s ender chest has been restored.")));
@@ -275,6 +277,10 @@ public class MessageData {
 
     public static void setMainInventoryDisabledButton(String message) {
         mainInventoryDisabledButton = message;
+    }
+
+    public static void setShulkerBoxButton(String message) {
+        shulkerBoxButton = message;
     }
 
     public static void setEnderChestRestored(String message) {
@@ -479,6 +485,10 @@ public class MessageData {
 
     public static String getMainInventoryDisabledButton() {
         return mainInventoryDisabledButton;
+    }
+
+    public static String getShulkerBoxButton() {
+        return shulkerBoxButton;
     }
 
     public static String getEnderChestRestored(String name) {
