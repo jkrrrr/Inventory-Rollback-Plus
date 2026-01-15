@@ -26,7 +26,7 @@ public class MainInventoryBackupMenu {
 	private final LogType logType;
 	private final Long timestamp;
 	private final ItemStack[] mainInventory;
-	private final ItemStack[] armour;
+	private final ItemStack[] armor;
 	private final ItemStack[] enderChest;
 	private final String location;
 	private final double health;
@@ -47,7 +47,7 @@ public class MainInventoryBackupMenu {
 		this.logType = data.getLogType();
 		this.timestamp = data.getTimestamp();
 		this.mainInventory = data.getMainInventory();
-		this.armour = data.getArmour();
+		this.armor = data.getArmour();
 	    this.enderChest = data.getEnderChest();
 		this.location = location;
 		this.health = data.getHealth();
@@ -85,27 +85,35 @@ public class MainInventoryBackupMenu {
     		// Add items, 5 per tick
 			new BukkitRunnable() {
 
-				int invPosition = 0;
-				int itemPos = 0;
-				final int max = mainInvLen - 5; // excluded
+				boolean processedHotbar;
+				int menuPos = 27;
+				int backupPos = 0;
+				final int max = Math.min(mainInvLen, 36); // excluded
 
 				@Override
 				public void run() {
 					for (int i = 0; i < 6; i++) {
 						// If hit max item position, stop
-						if (itemPos >= max) {
+						if (backupPos >= max) {
 							this.cancel();
 							return;
 						}
 
-						ItemStack itemStack = mainInventory[itemPos];
+						ItemStack itemStack = mainInventory[backupPos];
 						if (itemStack != null) {
-							inventory.setItem(invPosition, itemStack);
-							// Don't change inv position if there was nothing to place
-							invPosition++;
+							inventory.setItem(menuPos, itemStack);
 						}
+
+						// Move to next menu slot
+						menuPos++;
+						// We were incrementing the hotbar position (bottom of the UI) first. Once we reach that
+						// slot, we move back to the top of the UI for the rest of the inventory
+						if (menuPos >= 36 && !processedHotbar) {
+							menuPos = 0;
+						}
+
 						// Move to next item stack
-						itemPos++;
+						backupPos++;
 					}
 				}
 			}.runTaskTimer(main, 0, 1);
@@ -118,16 +126,16 @@ public class MainInventoryBackupMenu {
 		item = 36;
 		position = 44;
 		
-		//Add armour
-		if (armour != null && armour.length > 0) {
+		//Add armor
+		if (armor != null && armor.length > 0) {
 			try {
-				for (int i = 0; i < armour.length; i++) {
+				for (int i = 0; i < armor.length; i++) {
 					// Place item safely
 					final int finalPos = position;
 					final int finalItem = i;
 					Future<Void> placeItemFuture = main.getServer().getScheduler().callSyncMethod(main,
 							() -> {
-								inventory.setItem(finalPos, armour[finalItem]);
+								inventory.setItem(finalPos, armor[finalItem]);
 								return null;
 							});
 					placeItemFuture.get();
@@ -138,7 +146,7 @@ public class MainInventoryBackupMenu {
 			}
 		} else {
 			try {
-				for (int i = 36; i < mainInvLen; i++) {
+				for (; item < mainInvLen; item++) {
 					if (mainInventory[item] != null) {
 						// Place item safely
 						final int finalPos = position;
@@ -151,7 +159,6 @@ public class MainInventoryBackupMenu {
 						placeItemFuture.get();
 						position--;
 					}
-					item++;
 				}
 			} catch (ExecutionException | InterruptedException ex) {
 				ex.printStackTrace();
