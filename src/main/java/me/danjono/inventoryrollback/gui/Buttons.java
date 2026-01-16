@@ -308,6 +308,74 @@ public class Buttons {
         return button;
     }
 
+    public ItemStack inventorySnapshotPreviousButton(String displayName, LogType logType, Long timestamp, List<String> lore) {
+        ItemStack button = new ItemStack(getPageSelectorIcon());
+        BannerMeta meta = (BannerMeta) button.getItemMeta();
+
+        List<Pattern> patterns = createBannerPatterns(false);
+
+        assert meta != null;
+        meta.setPatterns(patterns);
+
+        if (InventoryRollbackPlus.getInstance().getVersion().greaterOrEqThan(BukkitVersion.v1_20_R4)) meta.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
+        else meta.addItemFlags(ItemFlag.valueOf("HIDE_POTION_EFFECTS"));
+
+        if (displayName != null) {
+            meta.setDisplayName(displayName);
+        }
+
+        if (lore != null) {
+            meta.setLore(lore);
+        }
+
+        button.setItemMeta(meta);
+
+        CustomDataItemEditor nbt = CustomDataItemEditor.editItem(button);
+
+        nbt.setString("uuid", uuid.toString());
+        nbt.setString("logType", logType.name());
+        nbt.setLong("timestamp", timestamp);
+        nbt.setInt("page", 1);
+
+        button = nbt.setItemData();
+
+        return button;
+    }
+
+    public ItemStack inventorySnapshotNextButton(String displayName, LogType logType, Long timestamp, List<String> lore) {
+        ItemStack button = new ItemStack(getPageSelectorIcon());
+        BannerMeta meta = (BannerMeta) button.getItemMeta();
+
+        List<Pattern> patterns = createBannerPatterns(true);
+
+        assert meta != null;
+        meta.setPatterns(patterns);
+
+        if (InventoryRollbackPlus.getInstance().getVersion().greaterOrEqThan(BukkitVersion.v1_20_R4)) meta.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
+        else meta.addItemFlags(ItemFlag.valueOf("HIDE_POTION_EFFECTS"));
+
+        if (displayName != null) {
+            meta.setDisplayName(displayName);
+        }
+
+        if (lore != null) {
+            meta.setLore(lore);
+        }
+
+        button.setItemMeta(meta);
+
+        CustomDataItemEditor nbt = CustomDataItemEditor.editItem(button);
+
+        nbt.setString("uuid", uuid.toString());
+        nbt.setString("logType", logType.name());
+        nbt.setLong("timestamp", timestamp);
+        nbt.setInt("page", 2);
+
+        button = nbt.setItemData();
+
+        return button;
+    }
+
     public ItemStack createInventoryButton(ItemStack item, LogType logType, String location, Long time, String displayName, List<String> lore) {    	
         ItemMeta meta = item.getItemMeta();
 

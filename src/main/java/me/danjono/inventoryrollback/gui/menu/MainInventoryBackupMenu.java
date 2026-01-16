@@ -13,6 +13,8 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -39,6 +41,10 @@ public class MainInventoryBackupMenu {
 
 	private int mainInvLen;
 	
+	private int snapshotPageIndex;
+	private List<Long> allSnapshots;
+	private int totalSnapshots;
+	
 	public MainInventoryBackupMenu(Player staff, PlayerData data, String location) {
 		this.main = InventoryRollbackPlus.getInstance();
 
@@ -59,6 +65,8 @@ public class MainInventoryBackupMenu {
 
 		this.mainInvLen = mainInventory == null ? 0 : mainInventory.length;
 		
+		this.snapshotPageIndex = allSnapshots.indexOf(timestamp);
+		
 		createInventory();
 	}
 	
@@ -67,6 +75,22 @@ public class MainInventoryBackupMenu {
 	    
 	    //Add back button
         inventory.setItem(46, buttons.inventoryMenuBackButton(MessageData.getBackButton(), logType, timestamp));
+        
+        // Add previous snapshot button if not at first snapshot
+        if (snapshotPageIndex > 0) {
+        	Long previousTimestamp = allSnapshots.get(snapshotPageIndex - 1);
+        	List<String> lore = new ArrayList<>();
+        	lore.add("Snapshot " + (snapshotPageIndex) + " / " + totalSnapshots);
+        	inventory.setItem(45, buttons.inventorySnapshotPreviousButton(MessageData.getPreviousPageButton(), logType, previousTimestamp, lore));
+        }
+        
+        // Add next snapshot button if not at last snapshot
+        if (snapshotPageIndex < totalSnapshots - 1) {
+        	Long nextTimestamp = allSnapshots.get(snapshotPageIndex + 1);
+        	List<String> lore = new ArrayList<>();
+        	lore.add("Snapshot " + (snapshotPageIndex + 2) + " / " + totalSnapshots);
+        	inventory.setItem(47, buttons.inventorySnapshotNextButton(MessageData.getNextPageButton(), logType, nextTimestamp, lore));
+        }
 	}
 	
 	public Inventory getInventory() {
