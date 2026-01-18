@@ -23,7 +23,8 @@ public class Version2Serialization {
     }
 
     public static DeserializationResult deserialize(InputStream bais) throws IOException {
-        ItemStack[] items = new ItemStack[readInt(bais)];
+        int itemCount = readInt(bais);
+        ItemStack[] items = new ItemStack[itemCount];
 
         for (int i = 0; i < items.length; i++) {
             // Read the length of the serialized item

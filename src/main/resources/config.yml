@@ -8,7 +8,7 @@ max-saves:
   death: 50
   world-change: 10
   force: 10
-  
+
 ## Number of lines shown with backups on (Max: 5)
 backup-lines-visible: 4
 
@@ -61,6 +61,9 @@ allow-other-plugins-edit-death-inventory: false
 ## Enabling this option will show a button to restore a player's backup fully to their character when online.
 ## This will overwrite their current inventory completely and wipe what they currently have without backing it up first.
 restore-to-player-button: true
+
+## Change this to 'false' to ignore saving if the player's inventory is empty
+save-empty-inventories: true
       
 ## Check for updates on Spigot when the server is started.
 update-checker: true

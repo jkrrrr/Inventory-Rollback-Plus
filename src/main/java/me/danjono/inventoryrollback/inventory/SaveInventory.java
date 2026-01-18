@@ -5,6 +5,7 @@ import com.nuclyon.technicallycoded.inventoryrollback.util.UserLogRateLimiter;
 import com.nuclyon.technicallycoded.inventoryrollback.util.serialization.ItemStackSerialization;
 import com.tcoded.lightlibs.bukkitversion.BukkitVersion;
 import me.danjono.inventoryrollback.InventoryRollback;
+import me.danjono.inventoryrollback.config.ConfigData;
 import me.danjono.inventoryrollback.data.LogType;
 import me.danjono.inventoryrollback.data.PlayerData;
 import org.bukkit.Location;
@@ -107,30 +108,29 @@ public class SaveInventory {
         ItemStack[] mainInvArmor = null;
         ItemStack[] enderInvContents = null;
 
-        for (ItemStack item : mainInventory.getContents()) {
-            // If any item is not null, we take a copy of the contents
-            if (item != null) {
-                mainInvContents = copyItemArray(mainInventory.getContents());
-                break;
-            }
+        ItemStack[] mainContents = mainInventory.getContents();
+        boolean emptyMainInv = isEmptyItemArr(mainContents);
+        boolean emptyInvAndArmor = emptyMainInv;
+        if (!emptyMainInv) {
+            mainInvContents = copyItemArray(mainContents);
         }
 
         if (main.getVersion().lessOrEqThan(BukkitVersion.v1_8_R3)) {
-            for (ItemStack item : mainInventory.getArmorContents()) {
-                // If any item is not null, we take a copy of the contents
-                if (item != null) {
-                    mainInvArmor = copyItemArray(mainInventory.getArmorContents());
-                    break;
-                }
+            ItemStack[] armorContents = mainInventory.getArmorContents();
+            if (!isEmptyItemArr(armorContents)) {
+                emptyInvAndArmor = false;
+                mainInvArmor = copyItemArray(armorContents);
             }
         }
 
-        for (ItemStack item : enderChestInventory.getContents()) {
-            // If any item is not null, we take a copy of the contents
-            if (item != null) {
-                enderInvContents = copyItemArray(enderChestInventory.getContents());
-                break;
-            }
+        // Skip saving when inv is empty and config allows skipping empty invs
+        if (emptyInvAndArmor && !ConfigData.isSaveEmptyInventories()) {
+            return null;
+        }
+
+        ItemStack[] enderContents = enderChestInventory.getContents();
+        if (!isEmptyItemArr(enderContents)) {
+            enderInvContents = copyItemArray(enderContents);
         }
 
         float totalXp = getTotalExperience(player);
@@ -154,6 +154,16 @@ public class SaveInventory {
 
         return new PlayerDataSnapshot(totalXp, health, foodLevel, saturation, worldName, locX, locY, locZ,
                 finalMainInvContents, finalMainInvArmor, finalEnderInvContents);
+    }
+
+    private boolean isEmptyItemArr(ItemStack[] contents) {
+        if (contents == null) return true;
+
+        for (ItemStack item : contents) {
+            if (item != null) return false;
+        }
+
+        return true;
     }
 
     private ItemStack[] copyItemArray(ItemStack[] contents) {

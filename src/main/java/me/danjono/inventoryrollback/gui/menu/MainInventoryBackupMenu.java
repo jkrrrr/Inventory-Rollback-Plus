@@ -1,6 +1,7 @@
 package me.danjono.inventoryrollback.gui.menu;
 
 import com.nuclyon.technicallycoded.inventoryrollback.InventoryRollbackPlus;
+import com.tcoded.lightlibs.bukkitversion.MCVersion;
 import me.danjono.inventoryrollback.config.ConfigData;
 import me.danjono.inventoryrollback.config.MessageData;
 import me.danjono.inventoryrollback.data.LogType;
@@ -21,6 +22,7 @@ import java.util.concurrent.Future;
 
 public class MainInventoryBackupMenu {
 
+	public static final int GIVE_SHULKERS_BUTTON_SLOT = 47;
 	private final InventoryRollbackPlus main;
 
 	private final Player staff;
@@ -28,7 +30,7 @@ public class MainInventoryBackupMenu {
 	private final LogType logType;
 	private final Long timestamp;
 	private final ItemStack[] mainInventory;
-	private final ItemStack[] armour;
+	private final ItemStack[] armor;
 	private final ItemStack[] enderChest;
 	private final String location;
 	private final double health;
@@ -53,7 +55,7 @@ public class MainInventoryBackupMenu {
 		this.logType = data.getLogType();
 		this.timestamp = data.getTimestamp();
 		this.mainInventory = data.getMainInventory();
-		this.armour = data.getArmour();
+		this.armor = data.getArmour();
 	    this.enderChest = data.getEnderChest();
 		this.location = location;
 		this.health = data.getHealth();
@@ -91,6 +93,32 @@ public class MainInventoryBackupMenu {
         	lore.add("Snapshot " + (snapshotPageIndex + 2) + " / " + totalSnapshots);
         	inventory.setItem(47, buttons.inventorySnapshotNextButton(MessageData.getNextPageButton(), logType, nextTimestamp, lore));
         }
+        inventory.setItem(45, buttons.inventoryMenuBackButton(MessageData.getBackButton(), logType, timestamp));
+
+		// Add get shulker button
+		if (main.getVersion().greaterOrEqThan(MCVersion.v1_11.toBukkitVersion()))
+			inventory.setItem(GIVE_SHULKERS_BUTTON_SLOT, buttons.giveShulkerBox(logType, timestamp));
+
+		// Add restore all player inventory button
+		if (ConfigData.isRestoreToPlayerButton())
+			inventory.setItem(48, buttons.restoreAllInventory(logType, timestamp));
+		else
+			inventory.setItem(48, buttons.restoreAllInventoryDisabled(logType, timestamp));
+
+		//Add teleport back button
+		inventory.setItem(49, buttons.enderPearlButton(logType, location));
+
+		//Add Enderchest icon
+		inventory.setItem(50, buttons.enderChestButton(logType, timestamp, enderChest));
+
+		//Add health icon
+		inventory.setItem(51, buttons.healthButton(logType, health));
+
+		//Add hunger icon
+		inventory.setItem(52, buttons.hungerButton(logType, hunger, saturation));
+
+		//Add Experience Bottle
+		inventory.setItem(53, buttons.experiencePotion(logType, xp));
 	}
 	
 	public Inventory getInventory() {
@@ -109,27 +137,35 @@ public class MainInventoryBackupMenu {
     		// Add items, 5 per tick
 			new BukkitRunnable() {
 
-				int invPosition = 0;
-				int itemPos = 0;
-				final int max = mainInvLen - 5; // excluded
+				boolean processedHotbar;
+				int menuPos = 27;
+				int backupPos = 0;
+				final int max = Math.min(mainInvLen, 36); // excluded
 
 				@Override
 				public void run() {
 					for (int i = 0; i < 6; i++) {
 						// If hit max item position, stop
-						if (itemPos >= max) {
+						if (backupPos >= max) {
 							this.cancel();
 							return;
 						}
 
-						ItemStack itemStack = mainInventory[itemPos];
+						ItemStack itemStack = mainInventory[backupPos];
 						if (itemStack != null) {
-							inventory.setItem(invPosition, itemStack);
-							// Don't change inv position if there was nothing to place
-							invPosition++;
+							inventory.setItem(menuPos, itemStack);
 						}
+
+						// Move to next menu slot
+						menuPos++;
+						// We were incrementing the hotbar position (bottom of the UI) first. Once we reach that
+						// slot, we move back to the top of the UI for the rest of the inventory
+						if (menuPos >= 36 && !processedHotbar) {
+							menuPos = 0;
+						}
+
 						// Move to next item stack
-						itemPos++;
+						backupPos++;
 					}
 				}
 			}.runTaskTimer(main, 0, 1);
@@ -142,16 +178,16 @@ public class MainInventoryBackupMenu {
 		item = 36;
 		position = 44;
 		
-		//Add armour
-		if (armour != null && armour.length > 0) {
+		//Add armor
+		if (armor != null && armor.length > 0) {
 			try {
-				for (int i = 0; i < armour.length; i++) {
+				for (int i = 0; i < armor.length; i++) {
 					// Place item safely
 					final int finalPos = position;
 					final int finalItem = i;
 					Future<Void> placeItemFuture = main.getServer().getScheduler().callSyncMethod(main,
 							() -> {
-								inventory.setItem(finalPos, armour[finalItem]);
+								inventory.setItem(finalPos, armor[finalItem]);
 								return null;
 							});
 					placeItemFuture.get();
@@ -162,7 +198,7 @@ public class MainInventoryBackupMenu {
 			}
 		} else {
 			try {
-				for (int i = 36; i < mainInvLen; i++) {
+				for (; item < mainInvLen; item++) {
 					if (mainInventory[item] != null) {
 						// Place item safely
 						final int finalPos = position;
@@ -175,33 +211,11 @@ public class MainInventoryBackupMenu {
 						placeItemFuture.get();
 						position--;
 					}
-					item++;
 				}
 			} catch (ExecutionException | InterruptedException ex) {
 				ex.printStackTrace();
 			}
 		}
-				
-		// Add restore all player inventory button
-		if (ConfigData.isRestoreToPlayerButton())
-		    inventory.setItem(48, buttons.restoreAllInventory(logType, timestamp));
-		 else
-			inventory.setItem(48, buttons.restoreAllInventoryDisabled(logType, timestamp));
-
-		//Add teleport back button
-		inventory.setItem(49, buttons.enderPearlButton(logType, location));
-		
-		//Add Enderchest icon	
-		inventory.setItem(50, buttons.enderChestButton(logType, timestamp, enderChest));
-		
-		//Add health icon
-		inventory.setItem(51, buttons.healthButton(logType, health));
-		
-		//Add hunger icon
-		inventory.setItem(52, buttons.hungerButton(logType, hunger, saturation));
-		
-		//Add Experience Bottle			
-		inventory.setItem(53, buttons.experiencePotion(logType, xp));
 	}
 		
 }
