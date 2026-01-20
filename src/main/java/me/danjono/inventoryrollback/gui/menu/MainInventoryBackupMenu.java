@@ -76,9 +76,6 @@ public class MainInventoryBackupMenu {
 	
 	public void createInventory() {
 	    inventory = Bukkit.createInventory(staff, InventoryName.MAIN_BACKUP.getSize(), InventoryName.MAIN_BACKUP.getName());
-	    
-	    //Add back button
-        // inventory.setItem(46, buttons.inventoryMenuBackButton(MessageData.getBackButton(), logType, timestamp));
         
         // Add previous backup button if not at first backup
         if (backupPageIndex > 0) {
