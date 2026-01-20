@@ -43,11 +43,11 @@ public class MainInventoryBackupMenu {
 
 	private int mainInvLen;
 	
-	private int snapshotPageIndex;
-	private List<Long> allSnapshots;
-	private int totalSnapshots;
+	private int backupPageIndex;
+	private List<Long> allBackups;
+	private int totalBackups;
 	
-	public MainInventoryBackupMenu(Player staff, PlayerData data, String location) {
+	public MainInventoryBackupMenu(Player staff, PlayerData data, String location, List<Long> allBackups) {
 		this.main = InventoryRollbackPlus.getInstance();
 
 		this.staff = staff;
@@ -67,7 +67,9 @@ public class MainInventoryBackupMenu {
 
 		this.mainInvLen = mainInventory == null ? 0 : mainInventory.length;
 		
-		this.snapshotPageIndex = allSnapshots.indexOf(timestamp);
+		this.allBackups = allBackups;
+		this.backupPageIndex = allBackups != null ? allBackups.indexOf(timestamp) : 0;
+		this.totalBackups = allBackups != null ? allBackups.size() : data.getAmountOfBackups();
 		
 		createInventory();
 	}
@@ -76,24 +78,24 @@ public class MainInventoryBackupMenu {
 	    inventory = Bukkit.createInventory(staff, InventoryName.MAIN_BACKUP.getSize(), InventoryName.MAIN_BACKUP.getName());
 	    
 	    //Add back button
-        inventory.setItem(46, buttons.inventoryMenuBackButton(MessageData.getBackButton(), logType, timestamp));
+        // inventory.setItem(46, buttons.inventoryMenuBackButton(MessageData.getBackButton(), logType, timestamp));
         
-        // Add previous snapshot button if not at first snapshot
-        if (snapshotPageIndex > 0) {
-        	Long previousTimestamp = allSnapshots.get(snapshotPageIndex - 1);
+        // Add previous backup button if not at first backup
+        if (backupPageIndex > 0) {
+        	Long previousTimestamp = allBackups.get(backupPageIndex - 1);
         	List<String> lore = new ArrayList<>();
-        	lore.add("Snapshot " + (snapshotPageIndex) + " / " + totalSnapshots);
+        	lore.add("Go to backup " + (backupPageIndex) + " / " + totalBackups);
+        	lore.add("Right-click to return to backup list");
         	inventory.setItem(45, buttons.inventorySnapshotPreviousButton(MessageData.getPreviousPageButton(), logType, previousTimestamp, lore));
         }
         
-        // Add next snapshot button if not at last snapshot
-        if (snapshotPageIndex < totalSnapshots - 1) {
-        	Long nextTimestamp = allSnapshots.get(snapshotPageIndex + 1);
+        // Add next backup button if not at last backup
+        if (backupPageIndex < totalBackups - 1) {
+        	Long nextTimestamp = allBackups.get(backupPageIndex + 1);
         	List<String> lore = new ArrayList<>();
-        	lore.add("Snapshot " + (snapshotPageIndex + 2) + " / " + totalSnapshots);
-        	inventory.setItem(47, buttons.inventorySnapshotNextButton(MessageData.getNextPageButton(), logType, nextTimestamp, lore));
+        	lore.add("Go to backup " + (backupPageIndex + 2) + " / " + totalBackups);
+        	inventory.setItem(46, buttons.inventorySnapshotNextButton(MessageData.getNextPageButton(), logType, nextTimestamp, lore));
         }
-        inventory.setItem(45, buttons.inventoryMenuBackButton(MessageData.getBackButton(), logType, timestamp));
 
 		// Add get shulker button
 		if (main.getVersion().greaterOrEqThan(MCVersion.v1_11.toBukkitVersion()))

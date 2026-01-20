@@ -5,6 +5,7 @@ import com.nuclyon.technicallycoded.inventoryrollback.customdata.CustomDataItemE
 import com.tcoded.lightlibs.bukkitversion.BukkitVersion;
 import me.danjono.inventoryrollback.config.MessageData;
 import me.danjono.inventoryrollback.data.LogType;
+import me.danjono.inventoryrollback.data.PlayerData;
 import me.danjono.inventoryrollback.inventory.RestoreInventory;
 import org.bukkit.*;
 import org.bukkit.block.banner.Pattern;
@@ -775,6 +776,7 @@ public class Buttons {
         for (int i = 1; i < nameParts.length; i ++) {
             loreParts.add(nameParts[i]);
         }
+        loreParts.add("§7Timestamp: §f" + PlayerData.getTime(timestamp));
         meta.setLore(loreParts);
 
         item.setItemMeta(meta);
