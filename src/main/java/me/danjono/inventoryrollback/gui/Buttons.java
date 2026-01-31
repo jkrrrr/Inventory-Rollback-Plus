@@ -776,7 +776,7 @@ public class Buttons {
         for (int i = 1; i < nameParts.length; i ++) {
             loreParts.add(nameParts[i]);
         }
-        loreParts.add("§7Timestamp: §f" + PlayerData.getTime(timestamp));
+        loreParts.add(MessageData.getMenuTimestamp(PlayerData.getTime(timestamp)));
         meta.setLore(loreParts);
 
         item.setItemMeta(meta);
